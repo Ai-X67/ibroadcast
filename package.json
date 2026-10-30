@@ -1,0 +1,12 @@
+{
+  "name": "ibroadcast-direct-file-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "iBroadcast direct-file media manager",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
