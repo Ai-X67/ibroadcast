@@ -1,6 +1,6 @@
 {
   "name": "ibroadcast",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "description": "Personal local media library and authorized direct media link manager",
   "main": "server.js",
@@ -8,6 +8,7 @@
     "start": "node server.js"
   },
   "engines": {
-    "node": ">=20"
-  }
+    "node": ">=20.0.0"
+  },
+  "author": "iBroadcast Team"
 }
