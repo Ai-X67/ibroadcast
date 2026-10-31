@@ -35,12 +35,12 @@ main{padding:30px clamp(18px,3.5vw,48px) 125px;max-width:1500px;width:100%;margi
 .playlistgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.playlist{background:#17243a;border:1px solid #283a57;border-radius:13px;padding:14px}.playlist h3{margin:0 0 5px;font-size:14px}.playlist p{margin:0 0 12px;color:var(--muted);font-size:11px}
 .bottomplayer{position:fixed;bottom:0;left:238px;right:0;min-height:94px;background:#0c1423f5;backdrop-filter:blur(14px);border-top:1px solid #26354c;display:grid;grid-template-columns:minmax(140px,1fr) minmax(160px,2fr) minmax(120px,1fr);align-items:center;padding:10px 22px;gap:14px;z-index:4}
 .nowplaying{display:flex;align-items:center;gap:10px;min-width:0}.tinyart{width:43px;height:43px;flex:none;border-radius:9px;background:#1d2c48;display:grid;place-items:center}.nowplaying b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nowplaying small{color:var(--muted);font-size:10px}
-.controls{display:flex;justify-content:center;align-items:center;gap:13px}.controls button{background:none;border:0;color:#dce6fa;font-size:17px;padding:6px}.controls .mainplay{background:#526fe8;border-radius:50%;width:38px;height:38px;color:white}
+.controls{display:flex;justify-content:center;align-items:center;gap:13px}.controls button{background:none;border:0;color:#dce6fa;font-size:17px;padding:6px}.controls .mainplay{background:#526fe8;border-radius:50%;width:38px;height:38px;color:white;display:grid;place-items:center;}
 .timeline{display:flex;align-items:center;gap:8px;color:#8e9bb1;font-size:10px}.timeline input{width:100%;accent-color:#718cff}.volume{width:90px;accent-color:#718cff}
-.toast{position:fixed;bottom:112px;left:50%;transform:translateX(-50%);background:#263955;color:white;padding:11px 15px;border-radius:10px;font-size:12px;z-index:10;max-width:90vw;box-shadow:0 8px 30px #0008}
+.toast{position:fixed;bottom:112px;left:50%;transform:translateX(-50%);background:#263955;color:white;padding:11px 15px;border-radius:10px;font-size:12px;z-index:10;max-width:90vw;box-shadow:0 8px 30px #0008;text-align:center;}
 .hidden{display:none!important}
 @media(max-width:900px){.featuregrid{grid-template-columns:1fr}}
-@media(max-width:650px){.shell{display:block}.sidebar{position:sticky;top:0;z-index:5;padding:11px 9px;background:#0b1221ed;backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;border-right:0;border-bottom:1px solid #1d2a40}.logo{font-size:19px;margin:0 7px 0 0}.navlabel,.sidebarfoot{display:none}.nav{display:flex;gap:2px}.nav button{padding:8px 8px;font-size:10px;gap:4px}.ico{display:none}main{padding:19px 13px 150px}.topbar{margin-bottom:19px}.welcome{display:block}.welcome p{font-size:12px;margin-top:6px}.inputline{flex-direction:column}.musicgrid{grid-template-columns:repeat(2,1fr)}.bottomplayer{left:0;grid-template-columns:1fr auto;padding:8px 12px;min-height:112px;gap:4px}.controls{grid-column:2;grid-row:1 / span 2}.timeline{grid-column:1;grid-row:2}.volume{display:none}.topright .pill{display:none}}
+@media(max-width:650px){.shell{display:block}.sidebar{position:sticky;top:0;z-index:5;padding:11px 9px;background:#0b1221ed;backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;border-right:0;border-bottom:1px solid #1d2a40}.logo{font-size:19px;margin:0 7px 0 0}.navlabel,.sidebarfoot{display:none}.nav{display:flex;gap:2px}.nav button{padding:8px 8px;font-size:10px;gap:4px}.ico{display:none}main{padding:19px 13px 150px}.topbar{margin-bottom:19px}.welcome{display:block}.welcome p{font-size:12px;margin-top:6px}.inputline{flex-direction:column}.bottomplayer{left:0;grid-template-columns:1fr auto;padding:8px 12px;min-height:112px;gap:4px}.controls{grid-column:2;grid-row:1 / span 2}.timeline{grid-column:1;grid-row:2}.volume{display:none}.topright .pill{display:none}}
 </style>
 </head>
 <body>
@@ -112,7 +112,7 @@ const API='/api';
 const DB='ibroadcast_db_v3', STORE='media';
 const $=id=>document.getElementById(id);
 let db, items=[], playlists=[], history=[], queue=[], currentId=null, objectURL=null;
-let audioMode=true, queueIndex=-1, busy=false;
+let audioMode=true, isSeeking=false;
 
 const toast=message=>{
   const el=$('toast'); el.textContent=message; el.classList.remove('hidden');
@@ -200,93 +200,4 @@ async function playItem(id,addHistory=true){
  const active=audioMode?$('audio'):$('video'),inactive=audioMode?$('video'):$('audio');
  inactive.pause();inactive.removeAttribute('src');inactive.load();
  active.src=src;active.volume=Number($('volume').value);active.load();
- try{await active.play()}catch(e){toast('এই ফাইলটি ব্রাউজারে চালানো যাচ্ছে না।');}
- if(addHistory){history=[id,...history.filter(v=>v!==id)].slice(0,100);saveMeta();}
- updatePlayer();render();
-}
-function activeMedia(){return audioMode?$('audio'):$('video')}
-function playQueueNext(){
- if(!queue.length)return;
- let idx=queue.indexOf(currentId);
- if(idx<0)idx=-1;
- if(idx+1>=queue.length)return toast('Queue শেষ।');
- playItem(queue[idx+1]);
-}
-function addQueue(id){if(!queue.includes(id))queue.push(id);saveMeta();render();toast('Queue-তে যোগ হয়েছে।')}
-async function addLocal(files){
- for(const file of files){
-  if(!file.type.startsWith('audio/')&&!file.type.startsWith('video/'))continue;
-  const id='local_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
-  const item={id,name:file.name,mime:file.type||'application/octet-stream',ext:(file.name.split('.').pop()||'FILE').toUpperCase(),size:file.size,added:Date.now(),liked:false,blob:file};
-  items.unshift(item);await persist(item);
- }
- render();toast(`${files.length} file যোগ করা হয়েছে।`);
-}
-async function analyze(){
- const raw=$('url').value.trim();if(!raw)return toast('আগে একটি direct media link দিন।');
- const btn=$('analyze');btn.disabled=true;btn.textContent='Checking…';$('analysisResult').innerHTML='';
- try{
-  const response=await fetch(API+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:raw})});
-  const data=await response.json();if(!response.ok)throw new Error(data.error||'Link verify করা যায়নি।');
-  const id='link_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
-  const item={id,url:data.url,name:data.filename,ext:data.extension||'MEDIA',mime:data.contentType,size:data.size||0,added:Date.now(),liked:false,blob:null};
-  items.unshift(item);await persist(item);addQueue(id);render();
-  $('analysisResult').innerHTML=`<div class="result"><h3>✓ ${esc(item.name)}</h3><p>${esc(item.mime)} · ${item.size?`${(item.size/1048576).toFixed(2)} MB`:'Size not supplied'}</p><div class="resultrow"><button class="btn" data-action="download" data-id="${esc(id)}">Download file</button><button class="btn secondary" data-action="play" data-id="${esc(id)}">Play</button></div></div>`;
-  toast('Media verified and added.');
- }catch(error){
-  $('analysisResult').innerHTML=`<div class="result"><h3>Could not verify this link</h3><p>${esc(error.message)}</p></div>`;
-  toast(error.message);
- }finally{btn.disabled=false;btn.textContent='Analyze link'}
-}
-async function downloadItem(id){
- const x=items.find(v=>v.id===id);if(!x||!x.url)return;
- const a=document.createElement('a');a.href=API+'/download?url='+encodeURIComponent(x.url);a.download=x.name;a.rel='noopener';document.body.appendChild(a);a.click();a.remove();
- toast('Download request sent. Check your Downloads folder.');
-}
-function createPlaylist(){
- const name=prompt('Playlist name?');if(!name||!name.trim())return;
- playlists.unshift({id:'pl_'+Date.now().toString(36),name:name.trim().slice(0,60),ids:[]});saveMeta();render();toast('Playlist created.');
-}
-document.addEventListener('click',async event=>{
- const b=event.target.closest('[data-action]');if(!b)return;
- const {action,id}=b.dataset,x=items.find(v=>v.id===id);
- if(action==='play'&&x)playItem(id);
- if(action==='queue'&&x)addQueue(id);
- if(action==='like'&&x){x.liked=!x.liked;await persist(x);render();}
- if(action==='delete'&&x){if(currentId===id){$('audio').pause();$('video').pause();currentId=null;updatePlayer();}items=items.filter(v=>v.id!==id);queue=queue.filter(v=>v!==id);history=history.filter(v=>v!==id);playlists.forEach(p=>p.ids=p.ids.filter(v=>v!==id));await removePersist(id);saveMeta();render();toast('Item removed.');}
- if(action==='download'&&x)downloadItem(id);
- if(action==='open-playlist'){const p=playlists.find(v=>v.id===id);if(!p)return;const tracks=p.ids.map(pid=>items.find(v=>v.id===pid)).filter(Boolean);$('playlistList').innerHTML=`<div class="paneltitle"><h3>${esc(p.name)}</h3><button class="mini" data-action="add-to-playlist" data-id="${esc(id)}">＋ Add tracks</button></div>${tracks.length?tracks.map(v=>itemRow(v)).join(''):empty('This playlist is empty. Add tracks from your library.')}`;}
- if(action==='add-to-playlist'){const p=playlists.find(v=>v.id===id);if(!p)return;const available=items.filter(v=>!p.ids.includes(v.id));if(!available.length)return toast('No tracks available to add.');const choice=prompt('Enter track number:\n'+available.map((v,i)=>`${i+1}. ${v.name}`).join('\n'));const n=Number(choice)-1;if(Number.isInteger(n)&&available[n]){p.ids.push(available[n].id);saveMeta();render();toast('Track added to playlist.');}}
- if(action==='rename-playlist'){const p=playlists.find(v=>v.id===id);if(!p)return;const name=prompt('New playlist name:',p.name);if(name&&name.trim()){p.name=name.trim().slice(0,60);saveMeta();render();}}
- if(action==='delete-playlist'){playlists=playlists.filter(v=>v.id!==id);saveMeta();render();}
-});
-$('analyze').addEventListener('click',analyze);
-$('url').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});
-['localFiles','localFiles2'].forEach(id=>$(id).addEventListener('change',e=>{addLocal([...e.target.files]);e.target.value='';}));
-$('newPlaylist').onclick=createPlaylist;$('newPlaylistHome').onclick=createPlaylist;
-$('search').addEventListener('input',render);$('sort').addEventListener('change',render);
-$('clearHistory').onclick=()=>{history=[];saveMeta();render();};
-$('play').onclick=()=>{const m=activeMedia();if(!currentId)return toast('আগে Library থেকে একটি media Play করুন।');if(m.paused)m.play().catch(()=>toast('Playback শুরু করা যায়নি।'));else m.pause();updatePlayer();};
-$('prev').onclick=()=>{if(!queue.length)return toast('Queue খালি।');const i=queue.indexOf(currentId);if(i>0)playItem(queue[i-1]);else toast('আগের track নেই।');};
-$('next').onclick=playQueueNext;
-$('volume').oninput=e=>{ $('audio').volume=Number(e.target.value);$('video').volume=Number(e.target.value); };
-$('seek').oninput=e=>{const m=activeMedia();if(Number.isFinite(m.duration)&&m.duration>0)m.currentTime=(Number(e.target.value)/1000)*m.duration;};
-for(const id of ['audio','video']){
- const m=$(id);
- m.addEventListener('timeupdate',()=>{if(m!==activeMedia())return;$('currentTime').textContent=fmt(m.currentTime);$('duration').textContent=fmt(m.duration);if(Number.isFinite(m.duration)&&m.duration>0)$('seek').value=String(Math.round(m.currentTime/m.duration*1000));});
- m.addEventListener('play',updatePlayer);m.addEventListener('pause',updatePlayer);m.addEventListener('ended',playQueueNext);
- m.addEventListener('error',()=>{if(m===activeMedia()&&currentId)toast('এই media format বা source ব্রাউজারে চালানো যাচ্ছে না।');});
-}
-async function init(){
- try{
-  db=await openDB();items=await loadAll();loadMeta();
-  queue=queue.filter(id=>items.some(x=>x.id===id));
-  $('audio').volume=.85;$('video').volume=.85;
-  render();updatePlayer();
- }catch(e){toast('Browser storage চালু করা যায়নি। Private mode বন্ধ করে আবার চেষ্টা করুন।');}
-}
-init();
-})();
-</script>
-</body>
-</html>
+ try{await activ
