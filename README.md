@@ -1,24 +1,22 @@
-# iBroadcast 2.0
+# iBroadcast 2.0.1
 
-A mobile-friendly personal media library for local audio/video files and authorized direct media URLs.
+A mobile-friendly personal media library for local audio/video files and authorized direct media URLs. Features a built-in player, persistent browser storage via IndexedDB, and server-side URL validation.
 
 ## Deploy on Render
-- Build command: `npm install`
-- Start command: `npm start`
-- Runtime: Node 20 or newer
+- **Build command:** `npm install` (or leave empty as there are no external dependencies)
+- **Start command:** `npm start`
+- **Runtime:** Node 20 or newer
 - Keep `index.html`, `server.js`, and `package.json` in the repository root.
 
 ## Features
-- Local audio/video file library stored in the browser IndexedDB
-- Browser playback controls and playback queue
-- Favorites, playlists, search, sort, and recently played history
-- Analyze and download supported public direct media URLs (up to 250 MB)
+- **Local Storage:** Audio/video file library stored safely in the browser's IndexedDB.
+- **Media Player:** Fully integrated bottom player with queue management and seek controls (fixed anti-jitter logic).
+- **Collections:** Favorites, playlists, search, sort, and history functions.
+- **Link Analyzer & Downloader:** Securely analyze and download supported public direct media URLs (up to 250 MB) without exposing server IPs.
 
-## Important limitations
-- This is browser-local storage: library files do not sync between devices or browsers.
-- Clearing browser site data can erase the local library.
-- Large local files use device/browser storage and available quota.
-- Download behavior depends on Android browser and source server.
-- YouTube/YouTube Music protected streams and DRM-protected media are not extracted.
-- Render free instances may sleep when idle; first request can be slow.
-- This is a first functional build, not a universal media downloader.
+## Important Limitations
+- **Local Persistence:** This relies on browser storage. Data does not sync between devices. Clearing browser site data will erase your library.
+- **Large Files:** Storing large local files consumes your device storage and is subject to the browser's storage quota constraints.
+- **Copyrighted Streams:** YouTube/YouTube Music protected streams and DRM-encrypted media cannot be extracted or processed.
+- **Render Cold Starts:** Free instances on Render spin down after inactivity; the initial request may take up to 50 seconds to respond.
+- 
