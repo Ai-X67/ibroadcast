@@ -1,0 +1,13 @@
+{
+  "name": "ibroadcast",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Personal local media library and authorized direct media link manager",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
