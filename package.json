@@ -1,14 +1,16 @@
 {
   "name": "ibroadcast",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "private": true,
-  "description": "Personal local media library and authorized direct media link manager",
+  "description": "Multi-platform media library and universal download manager",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
+  "dependencies": {
+    "@distube/ytdl-core": "^4.14.4"
+  },
   "engines": {
     "node": ">=20.0.0"
-  },
-  "author": "iBroadcast Team"
+  }
 }
