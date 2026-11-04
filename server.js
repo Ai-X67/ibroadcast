@@ -16,10 +16,9 @@ try {
 }
 
 const PORT = Number(process.env.PORT || 10000);
-const MAX = 400 * 1024 * 1024; // 400 MB Max Limit
+const MAX = 400 * 1024 * 1024;
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
-// Public Fallback API Pools for Free Bypassing of 429 Errors
 const COBALT_INSTANCES = [
   'https://cobalt-api.kwiatekmiki.com',
   'https://cobalt.api.timelessnesses.me',
@@ -115,27 +114,58 @@ async function validatePublicUrl(raw) {
 
 function safeFilename(name, ext) {
   const clean = String(name || 'media_file')
-    .replace(/[\r\n"\\/:*?<>|#%&{}~$!'`@+=]/g, '_') .replace(/\s+/g, '_') .replace(/_+/g, '_') .replace(/^_\vert{}_$/g, '') .slice(0, 95) \vert{}\vert{} 'media_file'; const cleanExt = String(ext \vert{}\vert{} 'mp4').replace(/^\./, '').toLowerCase(); return clean.toLowerCase().endsWith('.' + cleanExt) ? clean : `${clean}.${cleanExt}`; }  async function fetchJSON(url, options = {}, timeoutMs = 12000) { const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeoutMs); try { const res = await fetch(url, { ...options, signal: controller.signal, headers: { 'User-Agent': UA, 'Accept': 'application/json', ...(options.headers \vert{}\vert{} {}) } }); if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    .replace(/[^a-zA-Z0-9_\-\. ]/g, '_')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+    .slice(0, 95) || 'media_file';
+  const cleanExt = String(ext || 'mp4').replace(/^\./, '').toLowerCase();
+  return clean.toLowerCase().endsWith('.' + cleanExt) ? clean : `${clean}.${cleanExt}`;
+}
+
+async function fetchJSON(url, options = {}, timeoutMs = 12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'User-Agent': UA,
+        'Accept': 'application/json',
+        ...(options.headers || {})
+      }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } finally {
     clearTimeout(timer);
   }
 }
 
-// Engine 1: Cobalt Multi-Platform Extractor (Supports YT, IG, TikTok, FB, X, SoundCloud)
 async function tryCobaltExtract(targetUrl, mode = 'auto') {
   const isAudioOnly = mode === 'audio' || targetUrl.includes('music.youtube.com');
 
   for (const instance of COBALT_INSTANCES) {
     try {
-      // Try v10 schema first
       const v10Payload = {
         url: targetUrl,
         downloadMode: isAudioOnly ? 'audio' : 'auto',
         audioFormat: 'mp3',
         videoQuality: '720'
       };
-      const data = await fetchJSON(`${instance}/`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(v10Payload) }, 10000).catch(async () => { // Fallback to v7 schema on /api/json const v7Payload = { url: targetUrl, isAudioOnly: isAudioOnly, aFormat: 'mp3', vQuality: '720' }; return await fetchJSON(`${instance}/api/json`, {
+      const data = await fetchJSON(`${instance}/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(v10Payload)
+      }, 10000).catch(async () => {
+        const v7Payload = {
+          url: targetUrl,
+          isAudioOnly: isAudioOnly,
+          aFormat: 'mp3',
+          vQuality: '720'
+        };
+        return await fetchJSON(`${instance}/api/json`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
           body: JSON.stringify(v7Payload)
@@ -159,20 +189,16 @@ async function tryCobaltExtract(targetUrl, mode = 'auto') {
           engine: 'cobalt'
         };
       }
-    } catch {
-      // Try next instance silently
-    }
+    } catch {}
   }
   throw new Error('Cobalt instances busy');
 }
 
-// Engine 2: Piped & Invidious API Pool (Specifically for YouTube & YT Music)
 async function tryYouTubeApiExtract(rawUrl, mode = 'auto') {
   const videoId = extractYouTubeId(rawUrl);
   if (!videoId) throw new Error('Invalid YouTube video ID');
   const wantAudio = mode === 'audio' || rawUrl.includes('music.youtube.com');
 
-  // 2A. Try Piped Instances
   for (const api of PIPED_INSTANCES) {
     try {
       const data = await fetchJSON(`${api}/streams/${videoId}`, {}, 10000);
@@ -194,7 +220,39 @@ async function tryYouTubeApiExtract(rawUrl, mode = 'auto') {
         return {
           url: rawUrl,
           streamUrl: chosen.url,
-          filename: safeFilename(data.title || `youtube_${videoId}`, ext), extension: ext.toUpperCase(), contentType, size: Number(chosen.contentLength \vert{}\vert{} 0) \vert{}\vert{} null, platform: 'youtube', engine: 'piped' }; } } catch { // Next Piped node } }  // 2B. Try Invidious Instances for (const inv of INVIDIOUS_INSTANCES) { try { const data = await fetchJSON(`${inv}/api/v1/videos/${videoId}`, {}, 10000); if (!data) continue;  const adaptive = Array.isArray(data.adaptiveFormats) ? data.adaptiveFormats : []; const combined = Array.isArray(data.formatStreams) ? data.formatStreams : []; let chosen = null;  if (wantAudio) { chosen = adaptive.find(f => f.type?.startsWith('audio/mp4')) \vert{}\vert{} adaptive.find(f => f.type?.startsWith('audio/')); } else { chosen = combined.find(f => f.type?.startsWith('video/mp4')) \vert{}\vert{} combined[0] \vert{}\vert{} adaptive.find(f => f.type?.startsWith('audio/')); }  if (chosen && chosen.url) { const isAudio = chosen.type?.startsWith('audio/'); const ext = isAudio ? 'm4a' : 'mp4'; return { url: rawUrl, streamUrl: chosen.url, filename: safeFilename(data.title \vert{}\vert{} `youtube_${videoId}`, ext),
+          filename: safeFilename(data.title || `youtube_${videoId}`, ext),
+          extension: ext.toUpperCase(),
+          contentType,
+          size: Number(chosen.contentLength || 0) || null,
+          platform: 'youtube',
+          engine: 'piped'
+        };
+      }
+    } catch {}
+  }
+
+  for (const inv of INVIDIOUS_INSTANCES) {
+    try {
+      const data = await fetchJSON(`${inv}/api/v1/videos/${videoId}`, {}, 10000);
+      if (!data) continue;
+
+      const adaptive = Array.isArray(data.adaptiveFormats) ? data.adaptiveFormats : [];
+      const combined = Array.isArray(data.formatStreams) ? data.formatStreams : [];
+      let chosen = null;
+
+      if (wantAudio) {
+        chosen = adaptive.find(f => f.type?.startsWith('audio/mp4')) || adaptive.find(f => f.type?.startsWith('audio/'));
+      } else {
+        chosen = combined.find(f => f.type?.startsWith('video/mp4')) || combined[0] || adaptive.find(f => f.type?.startsWith('audio/'));
+      }
+
+      if (chosen && chosen.url) {
+        const isAudio = chosen.type?.startsWith('audio/');
+        const ext = isAudio ? 'm4a' : 'mp4';
+        return {
+          url: rawUrl,
+          streamUrl: chosen.url,
+          filename: safeFilename(data.title || `youtube_${videoId}`, ext),
           extension: ext.toUpperCase(),
           contentType: isAudio ? 'audio/mp4' : 'video/mp4',
           size: Number(chosen.clen || 0) || null,
@@ -202,15 +260,12 @@ async function tryYouTubeApiExtract(rawUrl, mode = 'auto') {
           engine: 'invidious'
         };
       }
-    } catch {
-      // Next Invidious node
-    }
+    } catch {}
   }
 
   throw new Error('YouTube API nodes unreachable');
 }
 
-// Engine 3: Local ytdl-core Extractor
 async function tryYtdlCoreExtract(rawUrl, mode = 'auto') {
   if (!ytdl) throw new Error('ytdl-core not installed');
   const wantAudio = mode === 'audio' || rawUrl.includes('music.youtube.com');
@@ -235,7 +290,15 @@ async function tryYtdlCoreExtract(rawUrl, mode = 'auto') {
     streamUrl: format.url,
     filename: safeFilename(info.videoDetails?.title || 'youtube_track', ext),
     extension: ext.toUpperCase(),
-    contentType: isAudio ? 'audio/mp4' : `video/${ext}`, size: Number(format.contentLength \vert{}\vert{} 0) \vert{}\vert{} null, platform: 'youtube', engine: 'ytdl' }; }  // Engine 4: TikTok Direct Public API (Extra Fallback for TikTok) async function tryTikWMExtract(rawUrl, mode = 'auto') { const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(rawUrl)}`;
+    contentType: isAudio ? 'audio/mp4' : `video/${ext}`,
+    size: Number(format.contentLength || 0) || null,
+    platform: 'youtube',
+    engine: 'ytdl'
+  };
+}
+
+async function tryTikWMExtract(rawUrl, mode = 'auto') {
+  const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(rawUrl)}`;
   const res = await fetchJSON(apiUrl, {}, 10000);
   if (res?.code !== 0 || !res?.data) throw new Error('TikTok API failed');
 
@@ -248,7 +311,54 @@ async function tryYtdlCoreExtract(rawUrl, mode = 'auto') {
   return {
     url: rawUrl,
     streamUrl,
-    filename: safeFilename(d.title || `tiktok_${d.id \vert{}\vert{} Date.now()}`, ext), extension: ext.toUpperCase(), contentType: wantAudio ? 'audio/mpeg' : 'video/mp4', size: Number(d.size \vert{}\vert{} 0) \vert{}\vert{} null, platform: 'tiktok', engine: 'tikwm' }; }  // Engine 5: Direct File Probe (MP3, MP4, WAV, etc.) function requestPinned(url, ip, method = 'GET', headers = {}) { return new Promise((resolve, reject) => { const transport = url.protocol === 'https:' ? https : http; const req = transport.request(url, { method, headers: { 'User-Agent': UA, 'Accept': '*/*', ...headers }, lookup: (hostname, options, callback) => { if (typeof options === 'function') { callback = options; options = {}; } const family = net.isIP(ip); if (!family) return callback(new Error('Invalid IP')); if (options && options.all) callback(null, [{ address: ip, family }]); else callback(null, ip, family); }, timeout: 20000 }, res => resolve({ res, req })); req.on('timeout', () => req.destroy(new Error('Source server timeout'))); req.on('error', reject); req.end(); }); }  async function probeDirectLink(rawUrl, depth = 0) { if (depth > 5) throw new Error('অতিরিক্ত Redirect পাওয়া গেছে।'); const { url, ip } = await validatePublicUrl(rawUrl); const { res } = await requestPinned(url, ip, 'GET', { Range: 'bytes=0-0' });  if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location) { const next = new URL(res.headers.location, url).href; res.resume(); return probeDirectLink(next, depth + 1); }  const status = res.statusCode; const type = String(res.headers['content-type'] \vert{}\vert{} 'application/octet-stream').split(';')[0].toLowerCase(); const size = Number(res.headers['content-range']?.split('/').pop() \vert{}\vert{} res.headers['content-length'] \vert{}\vert{} 0); res.destroy();  if (status < 200 \vert{}\vert{} status >= 400) { throw new Error(`সোর্স সার্ভার HTTP ${status} দিয়েছে।`);
+    filename: safeFilename(d.title || `tiktok_${d.id || Date.now()}`, ext),
+    extension: ext.toUpperCase(),
+    contentType: wantAudio ? 'audio/mpeg' : 'video/mp4',
+    size: Number(d.size || 0) || null,
+    platform: 'tiktok',
+    engine: 'tikwm'
+  };
+}
+
+function requestPinned(url, ip, method = 'GET', headers = {}) {
+  return new Promise((resolve, reject) => {
+    const transport = url.protocol === 'https:' ? https : http;
+    const req = transport.request(url, {
+      method,
+      headers: { 'User-Agent': UA, 'Accept': '*/*', ...headers },
+      lookup: (hostname, options, callback) => {
+        if (typeof options === 'function') { callback = options; options = {}; }
+        const family = net.isIP(ip);
+        if (!family) return callback(new Error('Invalid IP'));
+        if (options && options.all) callback(null, [{ address: ip, family }]);
+        else callback(null, ip, family);
+      },
+      timeout: 20000
+    }, res => resolve({ res, req }));
+    req.on('timeout', () => req.destroy(new Error('Source server timeout')));
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+async function probeDirectLink(rawUrl, depth = 0) {
+  if (depth > 5) throw new Error('অতিরিক্ত Redirect পাওয়া গেছে।');
+  const { url, ip } = await validatePublicUrl(rawUrl);
+  const { res } = await requestPinned(url, ip, 'GET', { Range: 'bytes=0-0' });
+
+  if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location) {
+    const next = new URL(res.headers.location, url).href;
+    res.resume();
+    return probeDirectLink(next, depth + 1);
+  }
+
+  const status = res.statusCode;
+  const type = String(res.headers['content-type'] || 'application/octet-stream').split(';')[0].toLowerCase();
+  const size = Number(res.headers['content-range']?.split('/').pop() || res.headers['content-length'] || 0);
+  res.destroy();
+
+  if (status < 200 || status >= 400) {
+    throw new Error(`সোর্স সার্ভার HTTP ${status} দিয়েছে।`);
   }
   if (type.includes('text/html')) {
     throw new Error('এটি একটি ওয়েবপেজ লিংক, সরাসরি মিডিয়া ফাইল নয়।');
@@ -276,7 +386,6 @@ async function tryYtdlCoreExtract(rawUrl, mode = 'auto') {
   };
 }
 
-// Master Resolver: Tries multiple engines until one succeeds!
 async function resolveMedia(rawUrl, mode = 'auto') {
   await validatePublicUrl(rawUrl);
   const platform = detectPlatform(rawUrl);
@@ -284,7 +393,7 @@ async function resolveMedia(rawUrl, mode = 'auto') {
   if (platform === 'tiktok') {
     try { return await tryTikWMExtract(rawUrl, mode); } catch {}
     try { return await tryCobaltExtract(rawUrl, mode); } catch {}
-    throw new Error('TikTok ভিডিওটি এই মুহূর্তে এক্সট্রাক্ট করা যাচ্ছে না। ভিডিওটি পাবলিক কি না চেক করুন।');
+    throw new Error('TikTok ভিডিওটি এই মুহূর্তে এক্সট্রাক্ট করা যাচ্ছে না।');
   }
 
   if (platform === 'youtube') {
@@ -299,16 +408,42 @@ async function resolveMedia(rawUrl, mode = 'auto') {
         if (res && res.streamUrl) return res;
       } catch {}
     }
-    throw new Error('YouTube সার্ভারের সবগুলো ফ্রি গেটওয়ে বর্তমানে ব্যস্ত আছে। কিছুক্ষণ পর বা অন্য লিংক দিয়ে চেষ্টা করুন।');
+    throw new Error('YouTube সার্ভারের গেটওয়ে ব্যস্ত রয়েছে। কিছুক্ষণ পর চেষ্টা করুন।');
   }
 
   if (['instagram', 'facebook', 'twitter', 'soundcloud'].includes(platform)) {
     try { return await tryCobaltExtract(rawUrl, mode); } catch {}
-    throw new Error(`${platform.toUpperCase()} লিংকটি এক্সট্রাক্ট করা যায়নি। পোস্টটি পাবলিক কি না নিশ্চিত করুন।`); }  // Default: Try direct media link first, fallback to Cobalt try { return await probeDirectLink(rawUrl); } catch (directErr) { try { return await tryCobaltExtract(rawUrl, mode); } catch { throw directErr; } } }  const sendJSON = (res, status, data) => { if (res.headersSent) return; res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); res.end(JSON.stringify(data)); };  const server = http.createServer(async (req, res) => { let parsed; try { parsed = new URL(req.url, `http://${req.headers.host || 'localhost'}`); }
+    throw new Error(`${platform.toUpperCase()} লিংকটি এক্সট্রাক্ট করা যায়নি।`);
+  }
+
+  try {
+    return await probeDirectLink(rawUrl);
+  } catch (directErr) {
+    try {
+      return await tryCobaltExtract(rawUrl, mode);
+    } catch {
+      throw directErr;
+    }
+  }
+}
+
+const sendJSON = (res, status, data) => {
+  if (res.headersSent) return;
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store',
+    'X-Content-Type-Options': 'nosniff'
+  });
+  res.end(JSON.stringify(data));
+};
+
+const server = http.createServer(async (req, res) => {
+  let parsed;
+  try { parsed = new URL(req.url, `http://${req.headers.host || 'localhost'}`); }
   catch { return sendJSON(res, 400, { error: 'Invalid request URL' }); }
 
   if (req.method === 'GET' && parsed.pathname === '/api/health') {
-    return sendJSON(res, 200, { status: 'ok', app: 'iBroadcast', version: '3.0.0' });
+    return sendJSON(res, 200, { status: 'ok', app: 'iBroadcast', version: '3.0.1' });
   }
 
   if (req.method === 'GET' && parsed.pathname === '/') {
@@ -380,13 +515,20 @@ async function resolveMedia(rawUrl, mode = 'auto') {
         if (upstream.statusCode < 200 || upstream.statusCode >= 400) {
           const st = upstream.statusCode;
           upstream.resume();
-          // If cached stream URL expired, re-resolve fresh stream URL once
           if (directStream && rawUrl && i === 0) {
             const fresh = await resolveMedia(rawUrl, mode);
             current = fresh.streamUrl;
             continue;
           }
-          throw new Error(`Upstream HTTP ${st}`); }  const upType = String(upstream.headers['content-type'] \vert{}\vert{} contentType).split(';')[0].toLowerCase(); const length = Number(upstream.headers['content-length'] \vert{}\vert{} 0);  const headers = { 'Content-Type': upType.includes('text/html') ? contentType : upType, 'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
+          throw new Error(`Upstream HTTP ${st}`);
+        }
+
+        const upType = String(upstream.headers['content-type'] || contentType).split(';')[0].toLowerCase();
+        const length = Number(upstream.headers['content-length'] || 0);
+
+        const headers = {
+          'Content-Type': upType.includes('text/html') ? contentType : upType,
+          'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
           'X-Content-Type-Options': 'nosniff',
           'Cache-Control': 'no-store',
           'Accept-Ranges': 'bytes'
@@ -396,4 +538,20 @@ async function resolveMedia(rawUrl, mode = 'auto') {
 
         res.writeHead(upstream.statusCode === 206 ? 206 : 200, headers);
         res.on('close', () => { if (!res.writableEnded) upstream.destroy(); });
-        upstream.on('erro
+        upstream.on('error', () => { if (!res.writableEnded) res.destroy(); });
+        upstream.pipe(res);
+        return;
+      }
+      throw new Error('Too many redirects while streaming');
+    } catch (error) {
+      if (!res.headersSent) sendJSON(res, 400, { error: error.message || 'Download failed' });
+      else res.destroy();
+    }
+    return;
+  }
+
+  sendJSON(res, 404, { error: 'Not found' });
+});
+
+server.listen(PORT, '0.0.0.0', () => console.log(`iBroadcast 3.0 Universal Server listening on ${PORT}`));
+
