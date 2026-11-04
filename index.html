@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080d19">
-<title>iBroadcast — Your media space</title>
+<title>iBroadcast 3.0 — Universal Media & Download Manager</title>
 <style>
 :root{color-scheme:dark;--bg:#080d19;--side:#0b1221;--panel:#111b2d;--panel2:#17243a;--line:#26354c;--text:#f5f7fb;--muted:#8e9bb1;--blue:#6688ff;--green:#48d6a0;--red:#ff778b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}button,input,select{font:inherit}button{cursor:pointer}
@@ -18,8 +18,10 @@ main{padding:30px clamp(18px,3.5vw,48px) 125px;max-width:1500px;width:100%;margi
 .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px;gap:16px}.crumb{color:var(--muted);font-size:12px}.topright{display:flex;align-items:center;gap:10px}.pill{border:1px solid var(--line);border-radius:30px;padding:8px 12px;color:#a8b5ca;font-size:11px}.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#26365a;color:#dce5ff;font-weight:800}
 .welcome{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:24px}.welcome h1{font-size:clamp(26px,3vw,36px);letter-spacing:-1.1px;margin:5px 0}.welcome p{margin:0;color:var(--muted)}.eyebrow{font-size:10px;letter-spacing:1.8px;color:#829bff;font-weight:800}
 .analyzer{border:1px solid #2c4166;border-radius:17px;background:linear-gradient(110deg,#172746,#151d35 65%,#1b2140);padding:19px 20px;margin-bottom:27px;box-shadow:0 15px 40px #02061155}
-.analyzerhead{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}.analyzer h2{font-size:15px;margin:0}.analyzerhead span{font-size:11px;color:#a9b9d5}
+.analyzerhead{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap}.analyzer h2{font-size:15px;margin:0}.analyzerhead span{font-size:11px;color:#a9b9d5}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.platbadge{font-size:10px;padding:4px 9px;border-radius:20px;background:#101c33;border:1px solid #2b4066;color:#b8c7e0;font-weight:600}
 .inputline{display:flex;gap:9px}.inputline input{flex:1;min-width:0;border:1px solid #405273;background:#0c1528;color:white;border-radius:10px;padding:13px 14px;outline:none}.inputline input:focus{border-color:#829bff;box-shadow:0 0 0 3px #829bff22}
+.inputline select{border:1px solid #405273;background:#0c1528;color:white;border-radius:10px;padding:0 12px;outline:none}
 .btn{border-radius:10px;padding:11px 17px;background:linear-gradient(135deg,#718cff,#536fe8);color:white;font-weight:750;border:0}.btn:disabled{opacity:.5;cursor:wait}.btn.secondary{background:#1b2a43;border:1px solid #344762}
 .help{font-size:11px;color:#9eacc4;margin-top:10px;line-height:1.5}
 .sectionhead{display:flex;align-items:center;justify-content:space-between;margin:28px 0 14px}.sectionhead h2{font-size:17px;margin:0;letter-spacing:-.3px}.subtle{color:var(--muted);font-size:11px}
@@ -27,54 +29,78 @@ main{padding:30px clamp(18px,3.5vw,48px) 125px;max-width:1500px;width:100%;margi
 .paneltitle{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}.paneltitle h3{font-size:14px;margin:0}
 .empty{border:1px dashed #34435c;border-radius:12px;padding:22px 14px;text-align:center;color:#8e9bb1;line-height:1.55;font-size:12px}
 .result{margin-top:14px;background:#0e192a;border:1px solid #2c4166;border-radius:12px;padding:14px}.result h3{margin:0 0 5px;font-size:14px}.result p{margin:0;color:#aab8ce;font-size:11px;line-height:1.5}.resultrow{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:12px}
-.tracklist{display:grid;gap:2px}.track{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #202e45;min-width:0}.track:last-child{border:0}.cover{width:40px;height:40px;flex:none;border-radius:10px;background:linear-gradient(145deg,#344d85,#1b2540 55%,#263e65);display:grid;place-items:center;color:#dce6ff}.trackinfo{min-width:0;flex:1}.trackinfo b{font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.trackinfo small{font-size:10px;color:var(--muted)}
+.track{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #202e45;min-width:0}.track:last-child{border:0}.cover{width:40px;height:40px;flex:none;border-radius:10px;background:linear-gradient(145deg,#344d85,#1b2540 55%,#263e65);display:grid;place-items:center;color:#dce6ff}.trackinfo{min-width:0;flex:1}.trackinfo b{font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.trackinfo small{font-size:10px;color:var(--muted)}
 .mini{border:1px solid #34445d;background:#1a2940;color:#dce6fa;border-radius:8px;padding:7px 9px;font-size:11px;flex:none}.mini.danger{color:#ff9aaa}
-.listrow{display:flex;align-items:center;gap:10px;padding:11px 3px;border-bottom:1px solid #202e45}.listrow:last-child{border:0}.filebadge{width:38px;height:38px;border-radius:10px;background:#26365a;display:grid;place-items:center;color:#cbd8ff;font-size:9px;font-weight:800;flex:none}.listmeta{min-width:0;flex:1}.listmeta b{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.listmeta small{font-size:10px;color:var(--muted)}
+.listrow{display:flex;align-items:center;gap:10px;padding:11px 3px;border-bottom:1px solid #202e45;flex-wrap:wrap}.listrow:last-child{border:0}.filebadge{width:38px;height:38px;border-radius:10px;background:#26365a;display:grid;place-items:center;color:#cbd8ff;font-size:9px;font-weight:800;flex:none}.listmeta{min-width:140px;flex:1}.listmeta b{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.listmeta small{font-size:10px;color:var(--muted)}
+.dlcard{padding:13px;border:1px solid #243552;background:#0e1726;border-radius:12px;margin-bottom:10px}.dlcard:last-child{margin-bottom:0}
+.dlhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}.dlhead b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.progwrap{height:7px;background:#1a273d;border-radius:99px;overflow:hidden;margin:8px 0}.progbar{height:100%;background:linear-gradient(90deg,#536fe8,#48d6a0);width:0%;transition:width .2s}
+.dlfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
 .toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:13px}.field{background:#0c1528;color:#eaf0ff;border:1px solid #344662;border-radius:9px;padding:10px 12px;min-width:0}.field.search{flex:1;min-width:160px}
 .view{display:none}.view.active{display:block}
 .playlistgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.playlist{background:#17243a;border:1px solid #283a57;border-radius:13px;padding:14px}.playlist h3{margin:0 0 5px;font-size:14px}.playlist p{margin:0 0 12px;color:var(--muted);font-size:11px}
-.bottomplayer{position:fixed;bottom:0;left:238px;right:0;min-height:94px;background:#0c1423f5;backdrop-filter:blur(14px);border-top:1px solid #26354c;display:grid;grid-template-columns:minmax(140px,1fr) minmax(160px,2fr) minmax(120px,1fr);align-items:center;padding:10px 22px;gap:14px;z-index:4}
+.bottomplayer{position:fixed;bottom:0;left:238px;right:0;min-height:94px;background:#0c1423f5;backdrop-filter:blur(14px);border-top:1px solid #26354c;display:grid;grid-template-columns:minmax(140px,1fr) minmax(160px,2fr) minmax(140px,1fr);align-items:center;padding:10px 22px;gap:14px;z-index:4}
 .nowplaying{display:flex;align-items:center;gap:10px;min-width:0}.tinyart{width:43px;height:43px;flex:none;border-radius:9px;background:#1d2c48;display:grid;place-items:center}.nowplaying b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nowplaying small{color:var(--muted);font-size:10px}
-.controls{display:flex;justify-content:center;align-items:center;gap:13px}.controls button{background:none;border:0;color:#dce6fa;font-size:17px;padding:6px}.controls .mainplay{background:#526fe8;border-radius:50%;width:38px;height:38px;color:white;display:grid;place-items:center;}
-.timeline{display:flex;align-items:center;gap:8px;color:#8e9bb1;font-size:10px}.timeline input{width:100%;accent-color:#718cff}.volume{width:90px;accent-color:#718cff}
-.toast{position:fixed;bottom:112px;left:50%;transform:translateX(-50%);background:#263955;color:white;padding:11px 15px;border-radius:10px;font-size:12px;z-index:10;max-width:90vw;box-shadow:0 8px 30px #0008;text-align:center;}
+.controls{display:flex;justify-content:center;align-items:center;gap:8px}.controls button{background:none;border:0;color:#dce6fa;font-size:15px;padding:6px}.controls button.active-ctrl{color:var(--green)}.controls .mainplay{background:#526fe8;border-radius:50%;width:38px;height:38px;color:white;display:grid;place-items:center}
+.timeline{display:flex;align-items:center;gap:8px;color:#8e9bb1;font-size:10px}.timeline input{width:100%;accent-color:#718cff}.volume{width:80px;accent-color:#718cff}
+.toast{position:fixed;bottom:112px;left:50%;transform:translateX(-50%);background:#263955;color:white;padding:11px 15px;border-radius:10px;font-size:12px;z-index:10;max-width:90vw;box-shadow:0 8px 30px #0008;text-align:center}
 .hidden{display:none!important}
 @media(max-width:900px){.featuregrid{grid-template-columns:1fr}}
-@media(max-width:650px){.shell{display:block}.sidebar{position:sticky;top:0;z-index:5;padding:11px 9px;background:#0b1221ed;backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;border-right:0;border-bottom:1px solid #1d2a40}.logo{font-size:19px;margin:0 7px 0 0}.navlabel,.sidebarfoot{display:none}.nav{display:flex;gap:2px}.nav button{padding:8px 8px;font-size:10px;gap:4px}.ico{display:none}main{padding:19px 13px 150px}.topbar{margin-bottom:19px}.welcome{display:block}.welcome p{font-size:12px;margin-top:6px}.inputline{flex-direction:column}.bottomplayer{left:0;grid-template-columns:1fr auto;padding:8px 12px;min-height:112px;gap:4px}.controls{grid-column:2;grid-row:1 / span 2}.timeline{grid-column:1;grid-row:2}.volume{display:none}.topright .pill{display:none}}
+@media(max-width:650px){.shell{display:block}.sidebar{position:sticky;top:0;z-index:5;padding:11px 9px;background:#0b1221ed;backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;border-right:0;border-bottom:1px solid #1d2a40;overflow-x:auto}.logo{font-size:18px;margin:0 7px 0 0;flex:none}.navlabel,.sidebarfoot{display:none}.nav{display:flex;gap:2px}.nav button{padding:8px 7px;font-size:10px;gap:3px;white-space:nowrap}.ico{display:none}main{padding:19px 13px 150px}.topbar{margin-bottom:19px}.welcome{display:block}.welcome p{font-size:12px;margin-top:6px}.inputline{flex-direction:column}.inputline select{padding:12px}.bottomplayer{left:0;grid-template-columns:1fr auto;padding:8px 12px;min-height:112px;gap:4px}.controls{grid-column:2;grid-row:1 / span 2}.timeline{grid-column:1;grid-row:2}.volume{display:none}.topright .pill{display:none}}
 </style>
 </head>
 <body>
 <div class="shell">
 <aside class="sidebar">
   <div class="logo">i<span>Broadcast</span></div>
-  <div>
+  <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
     <div class="navlabel">MENU</div>
     <nav class="nav">
       <button class="active" data-view="home"><span class="ico">⌂</span>Home</button>
+      <button data-view="downloads"><span class="ico">↓</span>Downloads <span id="dlBadge"></span></button>
       <button data-view="queue"><span class="ico">≡</span>Queue</button>
       <button data-view="library"><span class="ico">▣</span>Library</button>
-      <button data-view="liked"><span class="ico">♡</span>Most Liked</button>
+      <button data-view="liked"><span class="ico">♡</span>Liked</button>
+      <button data-view="playlists"><span class="ico">▤</span>Playlists</button>
+      <button data-view="history"><span class="ico">◷</span>History</button>
     </nav>
-    <div class="navlabel">YOUR COLLECTION</div>
-    <nav class="nav"><button data-view="playlists"><span class="ico">▤</span>Playlists</button><button data-view="history"><span class="ico">◷</span>History</button></nav>
   </div>
-  <div class="sidebarfoot">Your personal media workspace.<br>Save and play media you own or are authorized to use.</div>
+  <div class="sidebarfoot">iBroadcast 3.0 Universal.<br>Multi-Platform Extractor & Queue Manager.</div>
 </aside>
 <main>
-  <div class="topbar"><div class="crumb">Workspace&nbsp; / &nbsp;<span id="crumb">Home</span></div><div class="topright"><span class="pill">● Local library</span><div class="avatar">iB</div></div></div>
+  <div class="topbar"><div class="crumb">Workspace&nbsp; / &nbsp;<span id="crumb">Home</span></div><div class="topright"><span class="pill">● Multi-Engine Active</span><div class="avatar">iB</div></div></div>
 
   <section class="view active" id="home">
-    <div class="welcome"><div><div class="eyebrow">YOUR MUSIC. YOUR LIBRARY.</div><h1>Welcome to iBroadcast</h1><p>Your personal space for local media and authorized direct links.</p></div></div>
+    <div class="welcome"><div><div class="eyebrow">ALL-IN-ONE MEDIA HUB</div><h1>Welcome to iBroadcast 3.0</h1><p>Download and play from YouTube, YT Music, Instagram, TikTok, Facebook, or Direct Links.</p></div></div>
     <div class="analyzer">
-      <div class="analyzerhead"><h2>＋ &nbsp;Add a media link</h2><span>Link analyzer</span></div>
-      <div class="inputline"><input class="field" id="url" type="url" placeholder="Paste a direct downloadable media URL…" autocomplete="url"><button class="btn" id="analyze">Analyze link</button></div>
-      <div class="help">Supports direct downloadable audio/video files from sources that permit saving. Platform-protected streams are not extracted.</div>
+      <div class="analyzerhead"><h2>＋ &nbsp;Universal Media Link Analyzer</h2><span>Multi-Engine Bypass</span></div>
+      <div class="badges">
+        <span class="platbadge">▶ YouTube</span>
+        <span class="platbadge">♫ YT Music</span>
+        <span class="platbadge">◎ Instagram</span>
+        <span class="platbadge">♪ TikTok</span>
+        <span class="platbadge">f Facebook</span>
+        <span class="platbadge">🔗 Direct MP3/MP4</span>
+      </div>
+      <div class="inputline">
+        <input class="field" id="url" type="url" placeholder="Paste YouTube, YT Music, Instagram, TikTok, or direct link…" autocomplete="url">
+        <select id="formatMode" title="Format Mode">
+          <option value="auto">Auto (Best)</option>
+          <option value="audio">Audio Only (MP3/M4A)</option>
+          <option value="video">Video (MP4)</option>
+        </select>
+        <button class="btn" id="analyze">Analyze & Add</button>
+      </div>
+      <div class="help">Uses automatic multi-node cloud fallback (Cobalt + Piped + Invidious + TikWM) to avoid HTTP 429 rate-limit blocks on free servers.</div>
       <div id="analysisResult"></div>
     </div>
 
+    <div class="sectionhead"><h2>Active Download Queue</h2><button class="mini" data-view="downloads">Full Download Manager</button></div>
+    <div class="panel" id="homeDlPreview"><div class="empty">No active downloads in queue.</div></div>
+
     <div class="sectionhead"><h2>Recently Added</h2><span class="subtle">Your collection</span></div>
     <div class="featuregrid">
-      <div class="panel"><div class="paneltitle"><h3>Recently Added</h3><span class="subtle">Library</span></div><div id="recent" class="empty">Add a local file or supported link to get started.</div></div>
+      <div class="panel"><div class="paneltitle"><h3>Recently Added</h3><span class="subtle">Library</span></div><div id="recent" class="empty">Add a local file or social link to get started.</div></div>
       <div class="panel"><div class="paneltitle"><h3>Most Liked</h3><span class="subtle">Favorites</span></div><div id="likedPreview" class="empty">Your favorite tracks will appear here.</div></div>
     </div>
     <div class="sectionhead"><h2>Your Playlists</h2><span class="subtle">Collections</span></div>
@@ -84,7 +110,19 @@ main{padding:30px clamp(18px,3.5vw,48px) 125px;max-width:1500px;width:100%;margi
       <label class="btn secondary" for="localFiles">＋ Add local files</label>
       <input id="localFiles" class="hidden" type="file" accept="audio/*,video/*" multiple>
       <button class="btn secondary" id="newPlaylistHome">＋ New playlist</button>
-      <button class="btn secondary" data-view="library">Open library</button>
+      <button class="btn secondary" data-view="downloads">↓ Open Downloads</button>
+    </div>
+  </section>
+
+  <section class="view" id="downloads">
+    <div class="sectionhead">
+      <h2>Multi-Task Download Manager</h2>
+      <div style="display:flex;gap:8px">
+        <button class="mini" id="clearCompletedDl">Clear Completed</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div id="dlQueueList" class="empty">Your download queue is empty. Paste a link on Home to start downloading.</div>
     </div>
   </section>
 
@@ -97,9 +135,16 @@ main{padding:30px clamp(18px,3.5vw,48px) 125px;max-width:1500px;width:100%;margi
 </div>
 
 <div class="bottomplayer">
-  <div class="nowplaying"><div class="tinyart">♫</div><div style="min-width:0"><b id="nowTitle">No media selected</b><small id="nowSub">Choose a local file or supported link</small></div></div>
+  <div class="nowplaying"><div class="tinyart">♫</div><div style="min-width:0"><b id="nowTitle">No media selected</b><small id="nowSub">Choose a file or stream</small></div></div>
   <div class="timeline"><span id="currentTime">0:00</span><input id="seek" type="range" min="0" max="1000" value="0"><span id="duration">0:00</span></div>
-  <div class="controls"><button id="prev" title="Previous">|◀</button><button id="play" class="mainplay" title="Play">▶</button><button id="next" title="Next">▶|</button><input class="volume" id="volume" type="range" min="0" max="1" step=".01" value=".85" title="Volume"></div>
+  <div class="controls">
+    <button id="shuffleBtn" title="Shuffle">⇄</button>
+    <button id="prev" title="Previous">|◀</button>
+    <button id="play" class="mainplay" title="Play">▶</button>
+    <button id="next" title="Next">▶|</button>
+    <button id="repeatBtn" title="Repeat">↻</button>
+    <input class="volume" id="volume" type="range" min="0" max="1" step=".01" value=".85" title="Volume">
+  </div>
 </div>
 <div id="toast" class="toast hidden" role="status"></div>
 <audio id="audio" preload="metadata"></audio>
@@ -112,11 +157,16 @@ const API='/api';
 const DB='ibroadcast_db_v3', STORE='media';
 const $=id=>document.getElementById(id);
 let db, items=[], playlists=[], history=[], queue=[], currentId=null, objectURL=null;
-let audioMode=true, isSeeking=false;
+let audioMode=true, isSeeking=false, shuffleMode=false, repeatMode=false;
+
+// Multi-Download Queue State
+let dlTasks = [];
+let activeDownloads = 0;
+const MAX_CONCURRENT_DL = 2; // Allows 2 simultaneous downloads
 
 const toast=message=>{
   const el=$('toast'); el.textContent=message; el.classList.remove('hidden');
-  clearTimeout(toast.timer); toast.timer=setTimeout(()=>el.classList.add('hidden'),2800);
+  clearTimeout(toast.timer); toast.timer=setTimeout(()=>el.classList.add('hidden'),3400);
 };
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=seconds=>{
@@ -124,6 +174,13 @@ const fmt=seconds=>{
   const m=Math.floor(seconds/60),s=Math.floor(seconds%60);
   return `${m}:${String(s).padStart(2,'0')}`;
 };
+const fmtBytes=bytes=>{
+  if(!bytes||bytes<=0)return '0 B';
+  if(bytes<1024)return bytes+' B';
+  if(bytes<1048576)return (bytes/1024).toFixed(1)+' KB';
+  return (bytes/1048576).toFixed(2)+' MB';
+};
+
 const openDB=()=>new Promise((resolve,reject)=>{
   const req=indexedDB.open(DB,1);
   req.onupgradeneeded=()=>{const d=req.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:'id'});};
@@ -144,60 +201,43 @@ const saveMeta=()=>{try{localStorage.setItem('ibroadcast_meta_v3',JSON.stringify
 const loadMeta=()=>{try{const m=JSON.parse(localStorage.getItem('ibroadcast_meta_v3')||'{}');playlists=Array.isArray(m.playlists)?m.playlists:[];history=Array.isArray(m.history)?m.history:[];queue=Array.isArray(m.queue)?m.queue:[]}catch{}};
 
 function nav(view){
- document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===view));
- document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
- $('crumb').textContent=view[0].toUpperCase()+view.slice(1);
+  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===view));
+  document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
+  $('crumb').textContent=view[0].toUpperCase()+view.slice(1);
 }
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.view)));
 
-function itemRow(x,context='library'){
- const local=!!x.blob, label=x.ext||'FILE';
- return `<div class="listrow">
-  <div class="filebadge">${esc(label)}</div>
-  <div class="listmeta"><b>${esc(x.name)}</b><small>${esc(x.mime||'Media')} · ${local?'On this device':'Direct link'}${x.size?` · ${(x.size/1048576).toFixed(1)} MB`:''}</small></div>
-  <button class="mini" data-action="play" data-id="${esc(x.id)}">Play</button>
-  <button class="mini" data-action="queue" data-id="${esc(x.id)}">＋ Queue</button>
-  <button class="mini" data-action="like" data-id="${esc(x.id)}">${x.liked?'♥':'♡'}</button>
-  ${!local?`<button class="mini" data-action="download" data-id="${esc(x.id)}">Save</button>`:''}
-  <button class="mini danger" data-action="delete" data-id="${esc(x.id)}">×</button>
- </div>`;
+function buildProxyUrl(x){
+  const params = new URLSearchParams({
+    url: x.url || '',
+    stream: x.streamUrl || '',
+    name: x.name || 'media.mp4',
+    mime: x.mime || 'video/mp4',
+    mode: x.mode || 'auto'
+  });
+  return `${API}/download?${params.toString()}`;
 }
-function empty(msg){return `<div class="empty">${esc(msg)}</div>`}
-function render(){
- const recent=items.slice().sort((a,b)=>b.added-a.added);
- $('recent').innerHTML=recent.length?recent.slice(0,5).map(x=>itemRow(x,'recent')).join(''):empty('Add a local file or supported link to get started.');
- const liked=items.filter(x=>x.liked);
- $('likedPreview').innerHTML=liked.length?liked.slice(0,4).map(x=>itemRow(x)).join(''):empty('Your favorite tracks will appear here.');
- $('likedList').innerHTML=liked.length?liked.map(x=>itemRow(x)).join(''):empty('No favorites yet.');
- $('libraryCount').textContent=`${items.length} items`;
- $('queueCount').textContent=`${queue.length} tracks`;
- $('queueList').innerHTML=queue.length?queue.map(id=>items.find(x=>x.id===id)).filter(Boolean).map(x=>itemRow(x,'queue')).join(''):empty('Your playback queue is empty.');
- const q=$('search').value.toLowerCase().trim(),sort=$('sort').value;
- let lib=items.filter(x=>x.name.toLowerCase().includes(q));
- if(sort==='name')lib.sort((a,b)=>a.name.localeCompare(b.name));else if(sort==='old')lib.sort((a,b)=>a.added-b.added);else lib.sort((a,b)=>b.added-a.added);
- $('libraryList').innerHTML=lib.length?lib.map(x=>itemRow(x)).join(''):empty('No matching media found.');
- $('playlistList').innerHTML=playlists.length?playlists.map(p=>`<div class="playlist"><h3>${esc(p.name)}</h3><p>${p.ids.length} tracks</p><div class="toolbar"><button class="mini" data-action="open-playlist" data-id="${esc(p.id)}">Open</button><button class="mini" data-action="rename-playlist" data-id="${esc(p.id)}">Rename</button><button class="mini danger" data-action="delete-playlist" data-id="${esc(p.id)}">Delete</button></div></div>`).join(''):empty('Create your first playlist.');
- $('playlistPreview').innerHTML=playlists.length?playlists.slice(0,3).map(p=>`<div class="track"><div class="cover">♫</div><div class="trackinfo"><b>${esc(p.name)}</b><small>${p.ids.length} tracks</small></div><button class="mini" data-action="open-playlist" data-id="${esc(p.id)}">Open</button></div>`).join(''):empty('Create a playlist to organize your media.');
- $('historyList').innerHTML=history.length?history.map(id=>items.find(x=>x.id===id)).filter(Boolean).map(x=>itemRow(x,'history')).join(''):empty('Nothing played yet.');
-}
-function updatePlayer(){
- const current=items.find(x=>x.id===currentId);
- $('nowTitle').textContent=current?.name||'No media selected';
- $('nowSub').textContent=current?(current.blob?'Local file':'Direct media link'):'Choose a local file or supported link';
- $('play').textContent=($('audio').paused&&$('video').paused)?'▶':'Ⅱ';
-}
-async function mediaSource(x){
- if(objectURL){URL.revokeObjectURL(objectURL);objectURL=null}
- if(x.blob){objectURL=URL.createObjectURL(x.blob);return objectURL}
- return x.url;
-}
-async function playItem(id,addHistory=true){
- const x=items.find(v=>v.id===id);if(!x)return;
- currentId=id;
- const src=await mediaSource(x);
- const isVideo=(x.mime||'').startsWith('video/');
- audioMode=!isVideo;
- const active=audioMode?$('audio'):$('video'),inactive=audioMode?$('video'):$('audio');
- inactive.pause();inactive.removeAttribute('src');inactive.load();
- active.src=src;active.volume=Number($('volume').value);active.load();
- try{await activ
+
+function enqueueDownload(item, saveToLibraryOnly = false) {
+  const existing = dlTasks.find(t => t.itemId === item.id && ['queued','downloading','paused'].includes(t.status));
+  if (existing) {
+    nav('downloads');
+    return toast('এই ফাইলটি ইতিমধ্যে ডাউনলোড কিউতে আছে।');
+  }
+  const task = {
+    id: 'dl_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6),
+    itemId: item.id,
+    name: item.name,
+    url: item.url,
+    streamUrl: item.streamUrl || item.url,
+    mode: item.mode || 'auto',
+    mime: item.mime || 'video/mp4',
+    ext: item.ext || 'MP4',
+    total: item.size || 0,
+    loaded: 0,
+    status: 'queued',
+    chunks: [],
+    controller: null,
+    speed: 0,
+    saveToLibraryOnly,
+  
